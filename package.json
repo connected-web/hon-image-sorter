@@ -1,0 +1,21 @@
+{
+  "name": "hon-image-sorter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "start": "HON_IMAGE_PATH=/home/markavian/ComfyUI/output lerna run start",
+    "test": "lerna run test",
+    "lint": "lerna run lint"
+  },
+  "keywords": ["image-sorter", "browser", "http-server", "express", "png", "jpg", "stablediffusion", "filesystem"],
+  "author": "Connected Web",
+  "license": "ISC",
+  "workspaces": [
+    "components/*"
+  ],
+  "devDependencies": {
+    "lerna": "^6.6.1"
+  }
+}
