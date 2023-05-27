@@ -1,19 +1,6 @@
 
 <template>
     <div :class="[currentMode.class, 'app-boundary'].join(' ')">
-        <div class="title-bar">
-            <h1>HON Image Sorter</h1>
-            <button @click="reloadImageData">Reload</button>
-        </div>
-
-        <div class="control-block">
-            <label>Folders</label>
-            <div class="button row">
-                <button v-for="folder in folders" :key="folder" @click="changeFolder(folder)"
-                    :class="selectedClass(folder, currentFolder)">{{ folder }} ({{ filesInFolder(folder) }})</button>
-            </div>
-        </div>
-
         <div class="control-block">
             <div class="control-block">
                 <label>Filter</label>
@@ -23,13 +10,6 @@
                 <div class="button row">
                     <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
                         :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }}</button>
-                </div>
-            </div>
-            <div class="control-block">
-                <label>Image Size</label>
-                <div class="button row">
-                    <button v-for="mode in modes" :key="mode.name" @click="changeMode(mode)"
-                        :class="selectedClass(mode, currentMode)">{{ mode.name }}</button>
                 </div>
             </div>
         </div>
@@ -55,6 +35,7 @@
                         </div>
                     </div>
                     <div class="image-tag">{{ tagFor(image) }}</div>
+                    <div class="caption">{{ captionFor(image) }}</div>
                 </div>
                 <div v-else class="no-image">
                     🖼
@@ -62,7 +43,7 @@
             </div>
         </div>
 
-        <pre v-if="imagesInView.length === 0"><code>No images found</code></pre>
+        <pre v-if="imagesInView.length === 0"><code>No images found in {{ folderPath }}, {{ filteredImages }}</code></pre>
 
         <div class="scroll-footer" />
 
@@ -73,6 +54,7 @@
                     <button v-for="page in pages" :key="`select_page_${page}`" @click="changePage(page)"
                         :class="selectedClass(page, currentPage)">{{ page }}</button>
                     <button :disabled="!nextPageAvailable" @click="changePage(currentPage + 1)">➡️</button>
+                    <label>(IIV {{ imagesInView.length }} / CP {{ currentPage }} / PS {{ pageSize }} / FIC {{ filteredImages.length }})</label>
                 </div>
             </div>
             <div class="control-block">
@@ -110,6 +92,12 @@ const imageTags = {
 }
 
 export default {
+    props: {
+        folderPath: {
+            type: String,
+            default: null
+        }
+    },
     data() {
         return {
             localFilePath: '',
@@ -118,10 +106,8 @@ export default {
             serverUrl,
             honClient: new HonClient(serverUrl),
             currentMode: viewModes[0],
-            currentFolder: null,
             currentPage: 1,
             modes: viewModes,
-            offset: 0,
             pageSize: 40,
             tags: {},
             imageTags,
@@ -134,13 +120,13 @@ export default {
     },
     computed: {
         filteredImages() {
-            const { images, currentFolder, currentTagFilter, textFilter, tags } = this
+            const { images, folderPath, currentTagFilter, textFilter, tags } = this
 
-            if (!currentFolder) {
+            if (!folderPath) {
                 return images
             }
             let filteredImages = images
-                .filter(imagepath => imagepath.includes(currentFolder) && !imagepath.replace(`${serverUrl}${currentFolder}`, '').includes('/'))
+                .filter(imagepath => imagepath.includes(folderPath) && !imagepath.replace(`${serverUrl}/${folderPath}`, '').includes('/'))
 
             if (currentTagFilter) {
                 filteredImages = filteredImages.filter(imagepath => {
@@ -158,16 +144,16 @@ export default {
             return filteredImages
         },
         imagesInView() {
-            const { filteredImages, offset, pageSize, currentPage } = this
-            while (this.offset < 0) {
-                this.offset += filteredImages.length
-            }
+            const { filteredImages, pageSize, currentPage } = this
 
             const page = []
-            const practicalPageSize = Math.min(pageSize, filteredImages.length)
-            while (page.length < practicalPageSize) {
-                const image = filteredImages[((currentPage * pageSize) + offset + page.length) % filteredImages.length]
-                page.push(image)
+            let i = 0
+            while (i < pageSize) {
+                const image = filteredImages[((currentPage - 1) * pageSize) + i]
+                if (image) {
+                    page.push(image)
+                }
+                i++
             }
             return page.filter(n => n)
         },
@@ -204,13 +190,9 @@ export default {
                 return a.localeCompare(b, 'en', { numeric: true })
             })
             this.folders = (fileDetails?.folders ?? [])
-            this.currentFolder = this.folders[0]
         },
         changeMode(newMode) {
             this.currentMode = newMode
-        },
-        changeFolder(newFolder) {
-            this.currentFolder = newFolder
         },
         changePage(newPage) {
             const { pages } = this
@@ -232,6 +214,9 @@ export default {
         },
         tagFor(image) {
             return this.tags[image] ?? imageTags.none
+        },
+        captionFor(image) {
+            return (image + '').replace(serverUrl, '')
         },
         filesInFolder(folder) {
             const { images } = this
@@ -275,33 +260,6 @@ export default {
     padding: 0 0.5em;
 }
 
-.control-block {
-    flex: 1 1;
-    margin: 0;
-    background: #333;
-    color: white;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 0.5em;
-    transition: background-color 200ms ease-in-out;
-    min-height: 4em;
-}
-
-.control-block.center {
-    justify-content: center;
-}
-
-.control-block:hover {
-    background: #222;
-    transition: background-color 200ms ease-in-out;
-}
-
-.control-block label {
-    font-weight: bold;
-}
-
 .search-filter input {
     padding: 0.5em;
 }
@@ -320,7 +278,8 @@ export default {
     display: flex;
     place-content: center;
     background: #333;
-    font-size: 15px;
+    font-size: 0;
+    width: 100%;
 }
 
 .no-image {
@@ -333,48 +292,12 @@ export default {
     outline-offset: -2px;
 }
 
-.mode-256 .image-container,
-.mode-256 .image-container img {
-    max-width: 256px;
-    max-height: 256px;
-    font-size: 1.0em;
-}
-
-.mode-256 .no-image {
-    min-width: 256px;
-    min-height: 256px;
-}
-
-.mode-512 .image-container,
-.mode-512 .image-container img {
-    max-width: 512px;
-    max-height: 512px;
-    font-size: 1.2em;
-}
-
-.mode-512 .no-image {
-    min-width: 512px;
-    min-height: 512px;
-}
-
-.mode-768 .image-container,
-.mode-768 .image-container img {
-    max-width: 768px;
-    max-height: 768px;
-    font-size: 1.5em;
-}
-
-.mode-768 .no-image {
-    min-width: 768px;
-    min-height: 768px;
-}
-
 .image-with-buttons {
     width: 100%;
     height: 100%;
 }
 
-.image-container>img {
+.image-container img {
     width: 100%;
 }
 
@@ -382,6 +305,21 @@ export default {
     position: absolute;
     top: 0;
     right: 0;
+    font-size: 40px;
+}
+
+.caption {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 20px;
+    background: rgba(0,0,0,0.4);
+    padding: 2px 10px;
+}
+
+.image-container:hover .caption {
+    display: inline-block;
 }
 
 .bottom-half {
@@ -403,48 +341,12 @@ export default {
     padding: 0.5em 0;
     opacity: 0;
     transition: opacity 100ms ease-in-out;
+    font-size: 30px;
 }
 
 .bottom-half:hover .image-actions {
     opacity: 1.0;
     transition: opacity 200ms ease-in-out;
-}
-
-button.selected {
-    background: cornflowerblue;
-}
-
-.button.row {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 0.5em 0;
-}
-
-button {
-    padding: 0.5em;
-    background: #ddd;
-    border: none;
-    transition: background-color 200ms ease-in-out;
-}
-
-button:hover {
-    background: #fff;
-    border: none;
-    transition: background-color 200ms ease-in-out;
-}
-
-button:active {
-    background: #999;
-    border: none;
-    transition: background-color 200ms ease-in-out;
-}
-
-button:disabled,
-button.disabled {
-    cursor: default;
-    background: #ccc;
 }
 
 .scroll-footer {

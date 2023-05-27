@@ -25,12 +25,12 @@
     padding: 0 1em;
     gap: 1em;
     height: 4em;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid #333;
     overflow: hidden;
   }
   .site-logo {
     display: inline-block;
-    background: url(/site.svg);
+    background: url(../public/site.svg);
     background-repeat: no-repeat;
     background-size: contain;
     width: 2em;

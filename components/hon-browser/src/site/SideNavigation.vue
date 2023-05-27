@@ -1,7 +1,9 @@
 
 <template>
     <div class="sidenav">
-      <router-link to="/">Image Browser</router-link>
+      <label>Image Browser</label>
+      <router-link to="/">Images</router-link>
+      <router-link to="/folders">Folders</router-link>
   
       <label>Config</label>
       <router-link to="/settings">Settings</router-link>
@@ -20,7 +22,8 @@
     max-width: 200px;
     overflow-x: hidden;
     overflow-y: auto;
-    border-right: 2px solid #eee;
+    border-right: 2px solid #333;
+    transition: min-width 200ms ease-in-out, max-width 200ms ease-in-out, width 200ms ease-in-out, background-color 200ms ease-in-out;
   }
   .sidenav > * {
     white-space: nowrap;
@@ -28,16 +31,16 @@
   
   .sidenav > label {
     padding: 10px 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #333;
     font-size: 0.8em;
     text-transform: uppercase;
     letter-spacing: 4px;
     font-weight: 600;
-    color: #333;
+    color: #666;
   }
   .sidenav > a {
     padding: 10px 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #333;
   }
   
   @media only screen and (max-width: 768px) {
@@ -46,7 +49,7 @@
       width: 2em;
       max-width: 2em;
       overflow: hidden;
-      background: #aca;
+      background: #666;
       transition: min-width 200ms ease-in-out, max-width 200ms ease-in-out, width 200ms ease-in-out, background-color 200ms ease-in-out;
     }
     .sidenav > * {
