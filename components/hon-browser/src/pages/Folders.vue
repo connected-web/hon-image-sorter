@@ -195,5 +195,9 @@ export default {
     background: #111;
 }
 
+.folder-item * {
+    cursor: pointer;
+}
+
 </style>
   

@@ -3,7 +3,6 @@
     <div class="sidenav">
       <label>Image Browser</label>
       <router-link to="/">Images</router-link>
-      <router-link to="/folders">Folders</router-link>
   
       <label>Config</label>
       <router-link to="/settings">Settings</router-link>

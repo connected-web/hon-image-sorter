@@ -279,7 +279,8 @@ export default {
     place-content: center;
     background: #333;
     font-size: 0;
-    width: 100%;
+    width: 33%;
+    overflow: hidden;
 }
 
 .no-image {
@@ -301,6 +302,18 @@ export default {
     width: 100%;
 }
 
+@media screen and (max-width: 1024px) {
+    .image-container {
+        width: 50%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .image-container {
+        width: 100%;
+    }
+}
+
 .image-tag {
     position: absolute;
     top: 0;
@@ -312,10 +325,13 @@ export default {
     display: none;
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     font-size: 20px;
     background: rgba(0,0,0,0.4);
     padding: 2px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: right;
 }
 
 .image-container:hover .caption {

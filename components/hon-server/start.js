@@ -21,8 +21,8 @@ app.get('/', (req, res) => {
 })
 app.get('/server/list', async (req, res) => {
   console.log('GET /server/list')
-  const folderSearch = sourcePos('**\/')
-  const imageSearch = sourcePos('**\/*.png')
+  const folderSearch = sourcePos('**/')
+  const imageSearch = sourcePos('**/*.png')
   console.log('List files on server', { imageSearch })
   const files = await find(imageSearch)
   const folders = await find(folderSearch)
@@ -40,5 +40,5 @@ const uiServer = 'http://localhost:5173'
 console.log(`UI Server running on ${uiServer}`)
 
 app.listen(serverPort, () => {
-    console.log(`HON Server running on http://localhost:${serverPort}`)
+  console.log(`HON Server running on http://localhost:${serverPort}`)
 })
