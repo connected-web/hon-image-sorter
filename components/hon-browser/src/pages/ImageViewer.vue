@@ -96,6 +96,10 @@ export default {
         folderPath: {
             type: String,
             default: null
+        },
+        filter: {
+            type: String,
+            default: null
         }
     },
     data() {
@@ -112,7 +116,7 @@ export default {
             tags: {},
             imageTags,
             currentTagFilter: '',
-            textFilter: ''
+            textFilter: this.$route.query.textFilter ?? ''
         }
     },
     async mounted() {
@@ -225,6 +229,11 @@ export default {
         filterBasedOnTag(tag) {
             this.currentTagFilter = tag
             this.$forceUpdate()
+        }
+    },
+    watch: {
+        textFilter(newVal) {
+            this.$router.replace({ query: { ...this.$route.query, textFilter: newVal }})
         }
     }
 }
