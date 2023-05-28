@@ -32,6 +32,7 @@
                             <button @click="markImageForRemoval(image)">{{ imageTags.remove }}</button>
                             <button @click="markImageAsUnsure(image)">{{ imageTags.unsure }}</button>
                             <button @click="markImageToKeep(image)">{{ imageTags.keep }}</button>
+                            <button @click="clearMark(image)">{{ imageTags.none ?? '🧽' }}</button>
                         </div>
                     </div>
                     <div class="image-tag">{{ tagFor(image) }}</div>
@@ -43,9 +44,7 @@
             </div>
         </div>
 
-        <pre v-if="imagesInView.length === 0"><code>No images found in {{ folderPath }}, {{ filteredImages }}</code></pre>
-
-        <div class="scroll-footer" />
+        <pre v-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ filteredImages }}</code></pre>
 
         <div class="bottom-bar">
             <div class="control-block center">
@@ -54,12 +53,11 @@
                     <button v-for="page in pages" :key="`select_page_${page}`" @click="changePage(page)"
                         :class="selectedClass(page, currentPage)">{{ page }}</button>
                     <button :disabled="!nextPageAvailable" @click="changePage(currentPage + 1)">➡️</button>
-                    <label>(IIV {{ imagesInView.length }} / CP {{ currentPage }} / PS {{ pageSize }} / FIC {{ filteredImages.length }})</label>
                 </div>
             </div>
             <div class="control-block">
                 <label>Actions</label>
-                <div class="button row">
+                <div class="button row actions">
                     <button v-for="action in availableActions" :key="`action_${action.id}`" @click="activate(action)">{{
                         action.icon }} ({{ action?.files?.length }})</button>
                 </div>
@@ -71,7 +69,10 @@
 <script>
 import HonClient from '../clients/honClient.js'
 
-const serverUrl = 'http://192.168.0.37:8901'
+const location = window.location
+const serverPort = 8901
+const serverUrl = location.protocol + '//' + location.hostname + ':' + serverPort
+
 
 const viewModes = [{
     name: '256px',
@@ -110,7 +111,7 @@ export default {
             serverUrl,
             honClient: new HonClient(serverUrl),
             currentMode: viewModes[0],
-            currentPage: 1,
+            currentPage: Number.parseInt(this.$route.query.page) ?? 1,
             modes: viewModes,
             pageSize: 40,
             tags: {},
@@ -216,6 +217,9 @@ export default {
         markImageToKeep(image) {
             this.tags[image] = imageTags.keep
         },
+        clearMark(image) {
+            this.tags[image] = undefined
+        },
         tagFor(image) {
             return this.tags[image] ?? imageTags.none
         },
@@ -235,12 +239,18 @@ export default {
         textFilter(newVal) {
             this.$router.replace({ query: { ...this.$route.query, textFilter: newVal }})
         }
+    },
+    watch: {
+        currentPage(newVal) {
+            this.$router.replace({ query: { ...this.$route.query, page: newVal }})
+        }
     }
 }
 </script>
   
 <style scoped>
 .app-boundary {
+    display: relative;
     width: 100%;
     overflow-x: hidden;
 }
@@ -380,9 +390,7 @@ export default {
 }
 
 .bottom-bar {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+    width: inherit;
 }
 </style>
   

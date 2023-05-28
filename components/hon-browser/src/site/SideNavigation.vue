@@ -60,7 +60,7 @@
       min-width: 200px;
       width: 200px;
       max-width: 200px;
-      background: white;
+      background: #000;
       transition: min-width 200ms ease-in-out, max-width 200ms ease-in-out, width 200ms ease-in-out, background-color 200ms ease-in-out;
     }
     .sidenav:hover > * {

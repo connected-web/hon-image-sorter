@@ -18,7 +18,9 @@
 <script>
 import HonClient from '../clients/honClient.js'
 
-const serverUrl = 'http://192.168.0.37:8901'
+const location = window.location
+const serverPort = 8901
+const serverUrl = location.protocol + '//' + location.hostname + ':' + serverPort
 
 const viewModes = [{
     name: '256px',
