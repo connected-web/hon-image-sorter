@@ -1,9 +1,10 @@
 <template>
   <div class="page">
-    <h2>Feature Toggles</h2>
+    <h2>Settings</h2>
+    <p>The following features of the app can be configured...</p>
     <div v-for="(toggle, toggleName) in toggles" :key="toggleName">
       <div class="control-block">
-        <div>
+        <div class="toggle-title">
           <span class="toggle-icon">{{ toggle.icon }}</span>
           <b class="toggle-name">{{ toggle.name }}</b>
         </div>
@@ -30,22 +31,6 @@ export default {
   },
   methods: {
     initializeToggles() {
-      // Initialize the toggles using FeatureToggle class
-      FeatureToggle.initializeToggles({
-        newFeature: {
-          enabled: true,
-          name: 'New Feature',
-          icon: '🚀',
-          description: 'This is a new feature for users to enjoy.',
-        },
-        anotherFeature: {
-          enabled: false,
-          name: 'Another Feature',
-          icon: '🎉',
-          description: 'Try out this exciting feature!',
-        },
-      })
-
       this.toggles = FeatureToggle.getAllToggles()
     },
     toggleFeature(featureName) {
@@ -80,5 +65,23 @@ export default {
 .toggle-description {
   flex: 1 1;
   text-align: right;
+}
+
+@media only screen and (max-width: 1080px) {
+  .control-block {
+    flex-direction: column;
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+
+  .toggle-title {
+    font-size: 1.2em;
+  }
+
+  .toggle-description {
+    margin: 0;
+    flex: 10 10;
+    text-align: center;
+  }
 }
 </style>

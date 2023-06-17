@@ -37,6 +37,5 @@ export default {
   margin: 0;
   padding: 0;
   flex: 1 1;
-  min-width: 70vw;
 }
 </style>
