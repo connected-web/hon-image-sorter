@@ -6,6 +6,12 @@ import router from './routes.js'
 import FeatureToggle from './models/FeatureToggles'
 
 const defaultFeatures = {
+  showFilePath: {
+    enabled: true,
+    name: 'Show file path',
+    icon: '🏷️',
+    description: 'Show file path on image hover',
+  },
   tagImages: {
     enabled: true,
     name: 'Tag Images with Emoticons',

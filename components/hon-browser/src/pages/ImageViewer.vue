@@ -7,7 +7,7 @@
         <div class="search-filter">
           <input v-model="textFilter" placeholder="🔍 Type to filter..." />
         </div>
-        <div class="button row">
+        <div v-if="FeatureToggle.isEnabled('tagImages')" class="button row">
           <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
             :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ availableActions.find(action => action.icon === tag)?.files?.length ?? 0 }})</button>
         </div>
@@ -27,7 +27,7 @@
       <div v-for="image in imagesInView" :key="image" class="image-container">
         <div v-if="image" class="image-with-buttons">
           <img :src="image" :alt="image" />
-          <div class="bottom-half">
+          <div v-if="FeatureToggle.isEnabled('tagImages')" class="bottom-half">
             <div class="image-actions">
               <button @click="markImageForRemoval(image)">{{ imageTags.remove }}</button>
               <button @click="markImageAsUnsure(image)">{{ imageTags.unsure }}</button>
@@ -36,7 +36,7 @@
             </div>
           </div>
           <div class="image-tag">{{ tagFor(image) }}</div>
-          <div class="caption">{{ captionFor(image) }}</div>
+          <div v-if="FeatureToggle.isEnabled('showFilePath')" class="caption">{{ captionFor(image) }}</div>
         </div>
         <div v-else class="no-image">
           🖼
@@ -77,6 +77,7 @@
 <script>
 import HonClient from '../clients/honClient.js'
 import TaggedImageStorage from '../models/TaggedImageStorage.ts'
+import FeatureToggle from '../models/FeatureToggles'
 
 const location = window.location
 const serverPort = 8901
@@ -126,12 +127,14 @@ export default {
       tags: {},
       imageTags,
       currentTagFilter: '',
-      textFilter: this.$route.query.textFilter ?? ''
+      textFilter: this.$route.query.textFilter ?? '',
+      FeatureToggle
     }
   },
   async mounted() {
     this.reloadImageData()
     this.tags = TaggedImageStorage.getAll()
+    this.features = FeatureToggle.getAllToggles()
   },
   computed: {
     filteredImages() {
