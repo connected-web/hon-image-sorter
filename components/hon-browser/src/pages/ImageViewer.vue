@@ -9,7 +9,7 @@
         </div>
         <div class="button row">
           <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
-            :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }}</button>
+            :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ availableActions.find(action => action.icon === tag)?.files?.length ?? 0 }})</button>
         </div>
       </div>
     </div>
