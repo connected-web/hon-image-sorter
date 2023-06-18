@@ -208,7 +208,6 @@ export default {
     },
     async reloadImageData() {
       const fileDetails = await this.honClient.listFiles()
-      console.log('File details:', { fileDetails })
       this.localFilePath = fileDetails?.sourcePath
       this.images = (fileDetails?.images ?? []).map(imagePath => `${serverUrl}${imagePath}`).sort((a, b) => {
         return a.localeCompare(b, 'en', { numeric: true })
