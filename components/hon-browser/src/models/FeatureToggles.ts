@@ -5,10 +5,14 @@ interface FeatureToggleConfig {
   description: string;
 }
 
+type FeatureToggles = { [key: string]: FeatureToggleConfig }
+
 export default class FeatureToggle {
   private static storageKey = 'featureToggles';
 
-  static initializeToggles(config: { [key: string]: FeatureToggleConfig }): void {
+  public static defaultFeatures: FeatureToggles
+
+  static initializeToggles(config: FeatureToggles): void {
     const toggles = FeatureToggle.getAllToggles();
     for (const key in config) {
       toggles[key] = {
@@ -43,7 +47,7 @@ export default class FeatureToggle {
     return toggles[featureName] || null;
   }
 
-  static getAllToggles(): { [key: string]: FeatureToggleConfig } {
+  static getAllToggles(): FeatureToggles {
     const storedData = localStorage.getItem(FeatureToggle.storageKey);
     if (storedData) {
       try {
@@ -55,7 +59,12 @@ export default class FeatureToggle {
     return {};
   }
 
-  private static saveToggles(toggles: { [key: string]: FeatureToggleConfig }): void {
+  static reset() {
+    localStorage.removeItem(this.storageKey)
+    FeatureToggle.initializeToggles(FeatureToggle.defaultFeatures ?? {})
+  }
+
+  private static saveToggles(toggles: FeatureToggles): void {
     try {
       localStorage.setItem(FeatureToggle.storageKey, JSON.stringify(toggles));
     } catch (error) {

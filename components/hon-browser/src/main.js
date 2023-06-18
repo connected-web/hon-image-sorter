@@ -18,17 +18,23 @@ const defaultFeatures = {
     icon: '🏷️',
     description: 'Allows users to tag images with emoticons.',
   },
-  filterImages: {
+  filterImagesByTag: {
     enabled: true,
     name: 'Filter Images by Tag',
     icon: '🔍',
-    description: 'Enables users to filter images based on tags.',
+    description: 'Enables users to filter images based on tagging.',
   },
-  thumbnailPagination: {
+  filterImagesByText: {
     enabled: true,
-    name: 'Thumbnail Pagination',
-    icon: '📄',
-    description: 'Provides thumbnail pagination functionality.',
+    name: 'Filter Images by Text',
+    icon: '📝',
+    description: 'Enables users to filter images based on text search.',
+  },
+  pagination: {
+    enabled: true,
+    name: 'Pagination',
+    icon: '🔢',
+    description: 'Enables pagination of image results',
   },
   thumbnailScaling: {
     enabled: true,
@@ -106,6 +112,7 @@ const defaultFeatures = {
 
 // Initialize the toggles using FeatureToggle class
 FeatureToggle.initializeToggles(defaultFeatures)
+FeatureToggle.defaultFeatures = defaultFeatures
 
 const app = createApp(App)
 app.use(router)

@@ -1,20 +1,18 @@
 
 <template>
   <div :class="[currentMode.class, 'app-boundary'].join(' ')">
-    <div class="control-block">
-      <div class="control-block">
-        <label>Filter</label>
-        <div class="search-filter">
-          <input v-model="textFilter" placeholder="🔍 Type to filter..." />
-        </div>
-        <div v-if="FeatureToggle.isEnabled('tagImages')" class="button row">
-          <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
-            :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ availableActions.find(action => action.icon === tag)?.files?.length ?? 0 }})</button>
-        </div>
+    <div v-if="FeatureToggle.isEnabled('filterImagesByText') || FeatureToggle.isEnabled('filterImagesByTag')" class="control-block">
+      <label>Filter</label>
+      <div v-if="FeatureToggle.isEnabled('filterImagesByText')" class="search-filter">
+        <input v-model="textFilter" placeholder="🔍 Type to filter..." />
+      </div>
+      <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row">
+        <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
+          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ availableActions.find(action => action.icon === tag)?.files?.length ?? 0 }})</button>
       </div>
     </div>
 
-    <div class="control-block center">
+    <div v-if="FeatureToggle.isEnabled('pagination')" class="control-block center">
       <div class="button row pages">
         <button :disabled="!previousPageAvailable" @click="changePage(currentPage - 1)">⬅️</button>
         <button v-for="page in pages" :key="`select_page_${page}`" @click="changePage(page)"
@@ -46,7 +44,7 @@
 
     <pre v-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ filteredImages }}</code></pre>
 
-    <div class="bottom-bar">
+    <div v-if="FeatureToggle.isEnabled('pagination')" class="bottom-bar">
       <div class="control-block center">
         <div class="button row pages">
           <button :disabled="!previousPageAvailable" @click="changePage(currentPage - 1)">⬅️</button>
@@ -56,9 +54,10 @@
         </div>
       </div>
     </div>
+
     <div v-if="availableActions.length > 0" class="bottom-bar">
       <div class="control-block center">
-
+        <span class="hidden">spacer</span>
       </div>
     </div>
 
@@ -164,16 +163,20 @@ export default {
     imagesInView() {
       const { filteredImages, pageSize, currentPage } = this
 
-      const page = []
-      let i = 0
-      while (i < pageSize) {
-        const image = filteredImages[((currentPage - 1) * pageSize) + i]
-        if (image) {
-          page.push(image)
+      if (FeatureToggle.isEnabled('pagination')) {
+        const page = []
+        let i = 0
+        while (i < pageSize) {
+          const image = filteredImages[((currentPage - 1) * pageSize) + i]
+          if (image) {
+            page.push(image)
+          }
+          i++
         }
-        i++
+        return page.filter(n => n)
+      } else {
+        return filteredImages
       }
-      return page.filter(n => n)
     },
     pages() {
       const { filteredImages, pageSize } = this
