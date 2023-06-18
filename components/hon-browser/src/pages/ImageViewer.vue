@@ -8,7 +8,7 @@
       </div>
       <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row">
         <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
-          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ availableActions.find(action => action.icon === tag)?.files?.length ?? 0 }})</button>
+          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ Object.values(tags).filter(item => item === tag)?.length ?? 0 }})</button>
       </div>
     </div>
 
@@ -64,7 +64,12 @@
     <div v-if="availableActions.length > 0" class="floating-bar">
       <div class="control-block">
         <label>Tagged images</label>
-        <div class="button row actions">
+        <div v-if="displayConfirmation" class="confirm-action">
+          <label>Are you sure you want to {{ displayConfirmation.icon }} {{ displayConfirmation.files.length }} files?</label>
+          <button>Yes</button>
+          <button @click="displayConfirmation = null; currentTagFilter = ''">Cancel</button>
+        </div>
+        <div v-else class="button row actions">
           <button v-for="action in availableActions" :key="`action_${action.id}`" @click="activate(action)">{{
             action.icon }} ({{ action?.files?.length }})</button>
         </div>
@@ -127,7 +132,8 @@ export default {
       imageTags,
       currentTagFilter: '',
       textFilter: this.$route.query.textFilter ?? '',
-      FeatureToggle
+      FeatureToggle,
+      displayConfirmation: null
     }
   },
   async mounted() {
@@ -204,7 +210,9 @@ export default {
   },
   methods: {
     activate(action) {
-        console.log('Activating', action)
+      console.log('Activating', action)
+      this.filterBasedOnTag(action.icon)
+      this.displayConfirmation = action
     },
     async reloadImageData() {
       const fileDetails = await this.honClient.listFiles()
@@ -227,15 +235,20 @@ export default {
       return (value === currentValue) ? 'selected' : ''
     },
     markImageForRemoval(image) {
-      TaggedImageStorage.addTaggedImage(image, imageTags.remove)
-      this.tags = TaggedImageStorage.getAll()
+      this.markImageTag(image, imageTags.remove)
     },
     markImageAsUnsure(image) {
-      TaggedImageStorage.addTaggedImage(image, imageTags.unsure)
-      this.tags = TaggedImageStorage.getAll()
+      this.markImageTag(image, imageTags.unsure)
     },
     markImageToKeep(image) {
-      TaggedImageStorage.addTaggedImage(image, imageTags.keep)
+      this.markImageTag(image, imageTags.keep)
+    },
+    markImageTag(image, tag) {
+      if (this.tags[image] !== tag) {
+        TaggedImageStorage.addTaggedImage(image, tag)
+      } else {
+        TaggedImageStorage.removeTaggedImage(image)
+      }
       this.tags = TaggedImageStorage.getAll()
     },
     clearMark(image) {
@@ -341,6 +354,13 @@ export default {
 
 .image-container img {
   width: 100%;
+}
+
+.confirm-action {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
 }
 
 @media screen and (max-width: 1024px) {
