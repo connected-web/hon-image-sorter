@@ -79,7 +79,7 @@
 </template>
   
 <script>
-import HonClient from '../clients/honClient.js'
+import HonClient from '../clients/HonClient.js'
 import TaggedImageStorage from '../models/TaggedImageStorage.ts'
 import FeatureToggle from '../models/FeatureToggles'
 

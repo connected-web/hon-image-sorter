@@ -1,15 +1,17 @@
 <template>
   <div class="page">
-    <h2>Settings</h2>
+
+    <h2>Enabled Features</h2>
     <div class="control-block">
       <div class="toggle-title">
-        <span class="toggle-icon">🔄 </span>
+        <span class="toggle-icon">🔄</span>
         <b class="toggle-name">Reset features</b>
       </div>
       <p class="toggle-description">Reset the list of features to the defaults</p>
       <button @click="resetFeatures">Reset</button>
     </div>
-    <p>The following features of the app can be configured...</p>
+
+    <p>Enable and disable features:</p>
     <div v-for="(toggle, toggleName) in toggles" :key="toggleName">
       <div class="control-block">
         <div class="toggle-title">
@@ -19,6 +21,16 @@
         <p class="toggle-description">{{ toggle.description }}</p>
         <ToggleButton @click.native="toggleFeature(toggleName)" :value="toggle" />
       </div>
+    </div>
+
+    <h2>Settings</h2>
+    <div v-if="toggles?.moveFiles?.enabled" class="control-block">
+      <div class="toggle-title">
+        <span class="toggle-icon">🚀</span>
+        <b class="toggle-name">Tag actions</b>
+      </div>
+      <p class="toggle-description">Reset the list of features to the defaults</p>
+      <input v-model="settings" placeholder="Move files to..." />
     </div>
   </div>
 </template>
@@ -31,11 +43,17 @@ export default {
   components: { ToggleButton },
   data() {
     return {
-      toggles: {}
+      toggles: {},
+      settings: {}
     }
   },
   mounted() {
     this.initializeToggles()
+  },
+  computed: {
+    FeatureToggle() {
+      return FeatureToggle
+    }
   },
   methods: {
     initializeToggles() {
