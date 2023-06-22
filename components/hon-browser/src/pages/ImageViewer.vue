@@ -8,7 +8,7 @@
       </div>
       <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row">
         <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
-          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} ({{ Object.values(tags).filter(item => item === tag)?.length ?? 0 }})</button>
+          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} {{ filterableImages(tag, tags) ?? '' }}</button>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
       <div class="button row pages">
         <button :disabled="!previousPageAvailable" @click="changePage(currentPage - 1)">⬅️</button>
         <button v-for="page in pages" :key="`select_page_${page}`" @click="changePage(page)"
-          :class="selectedClass(page, currentPage)">{{ page }}</button>
+          :class="selectedClass(page, pageNum)">{{ page }}</button>
         <button :disabled="!nextPageAvailable" @click="changePage(currentPage + 1)">➡️</button>
       </div>
     </div>
@@ -49,7 +49,7 @@
         <div class="button row pages">
           <button :disabled="!previousPageAvailable" @click="changePage(currentPage - 1)">⬅️</button>
           <button v-for="page in pages" :key="`select_page_${page}`" @click="changePage(page)"
-            :class="selectedClass(page, currentPage)">{{ page }}</button>
+            :class="selectedClass(page, pageNum)">{{ page }}</button>
           <button :disabled="!nextPageAvailable" @click="changePage(currentPage + 1)">➡️</button>
         </div>
       </div>
@@ -65,7 +65,7 @@
       <div class="control-block">
         <label>Tagged images</label>
         <div v-if="displayConfirmation" class="confirm-action">
-          <label>Are you sure you want to {{ displayConfirmation.icon }} {{ displayConfirmation.files.length }} files?</label>
+          <label>Are you sure you want to <kbd>{{ displayConfirmation.icon }}</kbd> {{ displayConfirmation.files.length }} files?</label>
           <button>Yes</button>
           <button @click="displayConfirmation = null; currentTagFilter = ''">Cancel</button>
         </div>
@@ -142,6 +142,11 @@ export default {
     this.features = FeatureToggle.getAllToggles()
   },
   computed: {
+    pageNum() {
+      const { filteredImages, pageSize, currentPage } = this
+      const maxPage = Math.ceil(filteredImages.length / pageSize)
+      return Math.min(maxPage, currentPage)
+    },
     filteredImages() {
       const { images, folderPath, currentTagFilter, textFilter, tags } = this
 
@@ -167,13 +172,13 @@ export default {
       return filteredImages
     },
     imagesInView() {
-      const { filteredImages, pageSize, currentPage } = this
+      const { filteredImages, pageSize, pageNum } = this
 
       if (FeatureToggle.isEnabled('pagination')) {
         const page = []
         let i = 0
         while (i < pageSize) {
-          const image = filteredImages[((currentPage - 1) * pageSize) + i]
+          const image = filteredImages[((pageNum - 1) * pageSize) + i]
           if (image) {
             page.push(image)
           }
@@ -268,6 +273,10 @@ export default {
     filterBasedOnTag(tag) {
       this.currentTagFilter = tag
       this.$forceUpdate()
+    },
+    filterableImages(tag, tags) {
+      const { folderPath } = this
+      return Object.entries(tags).filter(([key, item]) => item === tag && key.includes(folderPath))?.length
     }
   },
   watch: {
@@ -440,6 +449,13 @@ export default {
   width: 100%;
   bottom: 0;
   right: 0;
+}
+
+kbd {
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  font-size: 16px;
 }
 </style>
   
