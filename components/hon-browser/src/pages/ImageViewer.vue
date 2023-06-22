@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <pre v-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ filteredImages }}</code></pre>
+    <pre v-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ { currentPage, filteredImages } }},</code></pre>
 
     <div v-if="FeatureToggle.isEnabled('pagination')" class="bottom-bar">
       <div class="control-block center">
@@ -79,7 +79,7 @@
 </template>
   
 <script>
-import HonClient from '../clients/HonClient.js'
+import HonClient from '../clients/HonClient.ts'
 import TaggedImageStorage from '../models/TaggedImageStorage.ts'
 import FeatureToggle from '../models/FeatureToggles'
 
@@ -125,7 +125,7 @@ export default {
       serverUrl,
       honClient: new HonClient(serverUrl),
       currentMode: viewModes[0],
-      currentPage: Number.parseInt(this.$route.query.page) ?? 1,
+      currentPage: this.$route.query.page ? Number.parseInt(this.$route.query.page) : 1,
       modes: viewModes,
       pageSize: 40,
       tags: {},

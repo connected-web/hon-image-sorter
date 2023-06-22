@@ -1,42 +1,40 @@
-import HonClient from '../clients/HonClient.js'
+import HonClient from '../clients/HonClient'
 import { ActionType } from './ImageTags'
 
 export default class ActionProcessor {
-  private client: HonClient  
+  private readonly client: HonClient
 
-  constructor(serverUrl: string | undefined) {
-    this.client = new HonClient(serverUrl)  
+  constructor (serverUrl: string | undefined) {
+    this.client = new HonClient(serverUrl)
   }
 
-  async processFiles(files: string[], action: ActionType): Promise<any> {
+  async processFiles (files: string[], action: ActionType): Promise<any> {
     if (action.type === 'move') {
-      return this.moveFiles(files, action.to)  
+      return await this.moveFiles(files, action.to)
     } else if (action.type === 'delete') {
-      return this.removeFiles(files)  
+      return await this.removeFiles(files)
     } else {
-      return Promise.reject('Invalid action type')  
+      return await Promise.reject(new Error('Invalid action type'))
     }
   }
 
-  private async moveFiles(files: string[], destination: string): Promise<any> {
+  private async moveFiles (files: string[], destination: string): Promise<any> {
     try {
-      const response = await this.client.moveFiles(files)  
-      // Process the response or perform additional actions if needed
-      return response  
+      const response = await this.client.moveFiles(files)
+      console.log('Moved files:', { response })
+      return response
     } catch (error) {
-      // Handle the error appropriately
-      throw error  
+      console.error('Unable to move files:', { files, error })
     }
   }
 
-  private async removeFiles(files: string[]): Promise<any> {
+  private async removeFiles (files: string[]): Promise<any> {
     try {
-      const response = await this.client.removeFiles(files)  
-      // Process the response or perform additional actions if needed
-      return response  
+      const response = await this.client.removeFiles(files)
+      console.log('Removed files:', { response })
+      return response
     } catch (error) {
-      // Handle the error appropriately
-      throw error  
+      console.error('Unable to remove files:', { files, error })
     }
   }
 }

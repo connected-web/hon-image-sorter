@@ -1,9 +1,21 @@
-export default class TaggedImageStorage {
-  private static storageKey = 'taggedImages'
+import isString from '@/lang/isString'
 
-  static getAll(): { [key: string]: string } {
-    const storedData = localStorage.getItem(TaggedImageStorage.storageKey)
-    if (storedData) {
+class TaggedImageStorage {
+  private readonly storageKey = 'taggedImages'
+  private static instance: TaggedImageStorage | null = null
+
+  private constructor () {}
+
+  static getInstance (): TaggedImageStorage {
+    if (TaggedImageStorage.instance == null) {
+      TaggedImageStorage.instance = new TaggedImageStorage()
+    }
+    return TaggedImageStorage.instance
+  }
+
+  getAll (): { [key: string]: string } {
+    const storedData = localStorage.getItem(this.storageKey)
+    if (isString(storedData)) {
       try {
         return JSON.parse(storedData)
       } catch (error) {
@@ -13,31 +25,31 @@ export default class TaggedImageStorage {
     return {}
   }
 
-  static addTaggedImage(imagePath: string, tag: string): void {
-    const taggedImages = TaggedImageStorage.getAll()
+  addTaggedImage (imagePath: string, tag: string): void {
+    const taggedImages = this.getAll()
     taggedImages[imagePath] = tag
-    TaggedImageStorage.save(taggedImages)
+    this.save(taggedImages)
   }
 
-  static removeTaggedImage(imagePath: string): void {
-    const taggedImages = TaggedImageStorage.getAll()
+  removeTaggedImage (imagePath: string): void {
+    const taggedImages = this.getAll()
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete taggedImages[imagePath]
-    TaggedImageStorage.save(taggedImages)
+    this.save(taggedImages)
   }
 
-  static clearAllTags(): void {
-    const taggedImages = TaggedImageStorage.getAll()
-    for (const imagePath in taggedImages) {
-      delete taggedImages[imagePath]
-    }
-    TaggedImageStorage.save(taggedImages)
+  clearAllTags (): void {
+    this.save({})
   }
 
-  private static save(data: { [key: string]: string }): void {
+  private save (data: { [key: string]: string }): void {
     try {
-      localStorage.setItem(TaggedImageStorage.storageKey, JSON.stringify(data))
+      localStorage.setItem(this.storageKey, JSON.stringify(data))
     } catch (error) {
       console.error('Error saving tagged images to localStorage:', error)
     }
   }
 }
+
+const taggedImageStorageInstance = TaggedImageStorage.getInstance()
+export default taggedImageStorageInstance

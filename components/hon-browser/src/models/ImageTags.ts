@@ -1,3 +1,5 @@
+import isString from '@/lang/isString'
+
 export interface ActionType {
   type: 'move' | 'delete' | ''
   to: string
@@ -7,17 +9,20 @@ export interface ActionMap {
   [key: string]: ActionType
 }
 
-export class ImageTags {
-  private static readonly STORAGE_KEY = 'imageTags'  
+type TagKey = 'keep' | 'remove' | 'unsure' | 'none'
 
-  private static readonly tags = {
+class ImageTags {
+  private readonly STORAGE_KEY = 'imageTags'
+  private static instance: ImageTags | null = null
+
+  private readonly tags: { [key in TagKey]: string } = {
     keep: '✅',
     remove: '❌',
     unsure: '🚧',
     none: ''
-  }  
+  }
 
-  private static readonly actions: ActionMap = {
+  private readonly actions: ActionMap = {
     keep: {
       type: 'move',
       to: './keep'
@@ -36,39 +41,52 @@ export class ImageTags {
     }
   }
 
-  static getTags(): { [key: string]: string } {
-    const storedTags = localStorage.getItem(ImageTags.STORAGE_KEY)  
-    if (storedTags) {
-      return JSON.parse(storedTags)  
+  private constructor () {}
+
+  static getInstance (): ImageTags {
+    if (ImageTags.instance == null) {
+      ImageTags.instance = new ImageTags()
     }
-    return {}  
+    return ImageTags.instance
   }
 
-  static setTag(key: string, value: string): void {
-    const tags = ImageTags.getTags()  
-    tags[key] = value  
-    localStorage.setItem(ImageTags.STORAGE_KEY, JSON.stringify(tags))  
+  getTags (): { [key in TagKey]: string } {
+    const storedTags = localStorage.getItem(this.STORAGE_KEY)
+    if (isString(storedTags)) {
+      return JSON.parse(storedTags)
+    }
+    return this.tags
   }
 
-  static removeTag(key: string): void {
-    const tags = ImageTags.getTags()  
-    delete tags[key]  
-    localStorage.setItem(ImageTags.STORAGE_KEY, JSON.stringify(tags))  
+  setTag (key: TagKey, value: string): void {
+    const tags = this.getTags()
+    tags[key] = value
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tags))
   }
 
-  static getActions(): ActionMap {
-    return { ...ImageTags.actions }  
+  removeTag (key: TagKey): void {
+    const tags = this.getTags()
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete tags[key]
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tags))
   }
 
-  static getTagByEmoji(emoji: string): string | undefined {
-    const tags = ImageTags.getTags()  
-    const tagKey = Object.keys(tags).find((key) => tags[key] === emoji)  
-    return tagKey ? ImageTags.tags[tagKey] : undefined  
+  getActions (): ActionMap {
+    return { ...this.actions }
   }
 
-  static getActionByEmoji(emoji: string): ActionType | undefined {
-    const actions = ImageTags.getActions()  
-    const actionKey = Object.keys(actions).find((key) => actions[key].type === emoji)  
-    return actionKey ? ImageTags.actions[actionKey] : undefined  
+  getTagByEmoji (emoji: string): string | undefined {
+    const tags = this.getTags()
+    const tagKey: TagKey = Object.keys(tags).find((key) => tags[key as TagKey] === emoji) as TagKey ?? 'none'
+    return isString(tagKey) ? this.tags[tagKey] : undefined
+  }
+
+  getActionByEmoji (emoji: string): ActionType | undefined {
+    const actions = this.getActions()
+    const actionKey = Object.keys(actions).find((key) => actions[key].type === emoji)
+    return isString(actionKey) ? this.actions[actionKey] : undefined
   }
 }
+
+const imageTagsInstance = ImageTags.getInstance()
+export default imageTagsInstance

@@ -16,7 +16,7 @@
 </template>
   
 <script>
-import HonClient from '../clients/HonClient.js'
+import HonClient from '../clients/HonClient.ts'
 import FolderItem from '../components/FolderItem.vue'
 
 const honClient = new HonClient()
