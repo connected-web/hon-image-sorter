@@ -20,7 +20,7 @@ export default class ActionProcessor {
 
   private async moveFiles (files: string[], destination: string): Promise<any> {
     try {
-      const response = await this.client.moveFiles(files)
+      const response = await this.client.moveFiles(files, destination)
       console.log('Moved files:', { response })
       return response
     } catch (error) {

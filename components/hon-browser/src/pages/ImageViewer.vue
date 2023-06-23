@@ -8,7 +8,7 @@
       </div>
       <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row">
         <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
-          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} {{ filterableImages(tag, tags) ?? '' }}</button>
+          :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} {{ tag ? filterableImages(tag, tags) : '' }}</button>
       </div>
     </div>
 
@@ -82,6 +82,7 @@
 import HonClient from '../clients/HonClient.ts'
 import TaggedImageStorage from '../models/TaggedImageStorage.ts'
 import FeatureToggle from '../models/FeatureToggles'
+import ImageTags from '../models/ImageTags.ts'
 
 const location = window.location
 const serverPort = 8901
@@ -98,13 +99,6 @@ const viewModes = [{
   name: '768px',
   class: 'mode-768'
 }]
-
-const imageTags = {
-  keep: '✅',
-  remove: '❌',
-  unsure: '🚧',
-  none: ''
-}
 
 export default {
   props: {
@@ -129,7 +123,6 @@ export default {
       modes: viewModes,
       pageSize: 40,
       tags: {},
-      imageTags,
       currentTagFilter: '',
       textFilter: this.$route.query.textFilter ?? '',
       FeatureToggle,
@@ -142,6 +135,9 @@ export default {
     this.features = FeatureToggle.getAllToggles()
   },
   computed: {
+    imageTags() {
+      return ImageTags.getTags()
+    },
     pageNum() {
       const { filteredImages, pageSize, currentPage } = this
       const maxPage = Math.ceil(filteredImages.length / pageSize)
@@ -282,9 +278,7 @@ export default {
   watch: {
     textFilter(newVal) {
       this.$router.replace({ query: { ...this.$route.query, textFilter: newVal }})
-    }
-  },
-  watch: {
+    },
     currentPage(newVal) {
       this.$router.replace({ query: { ...this.$route.query, page: newVal }})
     }

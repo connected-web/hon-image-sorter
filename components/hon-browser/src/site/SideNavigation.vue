@@ -4,8 +4,9 @@
     <label>Image Browser</label>
     <router-link to="/">Images</router-link>
 
-    <label>Config</label>
-    <router-link to="/settings">Settings</router-link>
+    <label>Settings</label>
+    <router-link to="/settings/feature-toggles">Feature Toggles</router-link>
+    <router-link to="/settings/action-config">Configure Actions</router-link>
   </div>
 </template>
 

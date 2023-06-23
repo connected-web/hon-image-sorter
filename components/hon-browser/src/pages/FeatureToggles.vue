@@ -11,7 +11,8 @@
       <button @click="resetFeatures">Reset</button>
     </div>
 
-    <p>Enable and disable features:</p>
+    <h3>Enable and disable features</h3>
+    <p>Turn functionality on and off across the app.</p>
     <div v-for="(toggle, toggleName) in toggles" :key="toggleName">
       <div class="control-block">
         <div class="toggle-title">
@@ -23,15 +24,6 @@
       </div>
     </div>
 
-    <h2>Settings</h2>
-    <div v-if="toggles?.moveFiles?.enabled" class="control-block">
-      <div class="toggle-title">
-        <span class="toggle-icon">🚀</span>
-        <b class="toggle-name">Tag actions</b>
-      </div>
-      <p class="toggle-description">Reset the list of features to the defaults</p>
-      <input v-model="settings" placeholder="Move files to..." />
-    </div>
   </div>
 </template>
   
