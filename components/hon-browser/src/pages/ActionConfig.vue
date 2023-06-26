@@ -3,33 +3,35 @@
     <h2>Configure Actions</h2>
     
     <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')">
-      <div v-for="tag in imageTags" :key="tag" class="control-block">
-        <button>{{ tag || '🧽' }}</button>
+      <div v-for="(action, key) in actions" :key="key" class="control-block">
+        <button>{{ tags[key] || '🧽' }}</button>
+        <div v-if="action.type === 'move'" class="action-description row">
+          <label>Move files to</label>
+          <input placeholder="./relative-path" v-model="action.to" />
+        </div>
+        <div v-if="action.type === 'delete'" class="action-description row">
+          <label>Delete Files</label>
+        </div>
       </div>
-    </div>
-
-    <div v-if="FeatureToggle.isEnabled('moveFiles')" class="control-block">
-      <div class="toggle-title">
-        <span class="toggle-icon">🚀</span>
-        <b class="toggle-name">Tag actions</b>
-      </div>
-      <p class="toggle-description">Reset the list of features to the defaults</p>
-      <input v-model="settings" placeholder="Move files to..." />
     </div>
   </div>
 </template>
   
 <script>
 import FeatureToggle from '../models/FeatureToggles.ts'
-import ToggleButton from '../components/ToggleButton.vue'
 import ImageTags from '../models/ImageTags.ts'
+import ActionProcessor from '../models/ActionProcessor.ts'
+
+import ToggleButton from '../components/ToggleButton.vue'
 
 export default {
   components: { ToggleButton },
   data() {
     return {
       toggles: {},
-      settings: {}
+      settings: {},
+      actions: ImageTags.getActions(),
+      tags: ImageTags.getTags()
     }
   },
   mounted() {
@@ -44,6 +46,9 @@ export default {
     }
   },
   methods: {
+    actionFor(tag) {
+      return ImageTags.getActionByEmoji(tag) ?? { tag }
+    },
     initializeToggles() {
       this.toggles = FeatureToggle.getAllToggles()
     },
@@ -83,9 +88,17 @@ export default {
   margin: 0 10px;
 }
 
-.toggle-description {
+.action-description {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   flex: 1 1;
   text-align: right;
+  gap: 10px;
+}
+
+input {
+  padding: 8px;
 }
 
 @media only screen and (max-width: 1080px) {
@@ -99,7 +112,7 @@ export default {
     font-size: 1.2em;
   }
 
-  .toggle-description {
+  .action-description {
     margin: 0;
     flex: 10 10;
     text-align: center;

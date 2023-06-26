@@ -17,8 +17,8 @@ class ImageTags {
 
   private readonly tags: { [key in TagKey]: string } = {
     keep: '✅',
-    remove: '❌',
     unsure: '🚧',
+    remove: '❌',
     none: ''
   }
 
@@ -27,13 +27,13 @@ class ImageTags {
       type: 'move',
       to: './keep'
     },
-    remove: {
-      type: 'delete',
-      to: ''
-    },
     unsure: {
       type: 'move',
       to: './review'
+    },
+    remove: {
+      type: 'delete',
+      to: ''
     },
     none: {
       type: '',
@@ -81,10 +81,16 @@ class ImageTags {
     return isString(tagKey) ? this.tags[tagKey] : undefined
   }
 
-  getActionByEmoji (emoji: string): ActionType | undefined {
+  getActionByName (name: TagKey): ActionType | undefined {
     const actions = this.getActions()
-    const actionKey = Object.keys(actions).find((key) => actions[key].type === emoji)
-    return isString(actionKey) ? this.actions[actionKey] : undefined
+    return actions[name]
+  }
+
+  getActionByEmoji (emoji: string): ActionType | undefined {
+    const tags = this.getTags()
+    const tagKey: TagKey = Object.keys(tags).find((key) => tags[key as TagKey] === emoji) as TagKey ?? 'none'
+    const actions = this.getActions()
+    return isString(tagKey) ? actions[tagKey] : undefined
   }
 }
 

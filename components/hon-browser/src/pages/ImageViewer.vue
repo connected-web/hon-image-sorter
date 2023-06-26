@@ -65,8 +65,8 @@
       <div class="control-block">
         <label>Tagged images</label>
         <div v-if="displayConfirmation" class="confirm-action">
-          <label>Are you sure you want to <kbd>{{ displayConfirmation.icon }}</kbd> {{ displayConfirmation.files.length }} files?</label>
-          <button>Yes</button>
+          <label>Are you sure you want to <kbd>{{ displayConfirmation.icon }} {{ displayConfirmation.action?.type }}</kbd> {{ displayConfirmation.files.length }} files?</label>
+          <button @click="actionProcessor.processFiles(displayConfirmation.files, displayConfirmation?.action)">Yes</button>
           <button @click="displayConfirmation = null; currentTagFilter = ''">Cancel</button>
         </div>
         <div v-else class="button row actions">
@@ -83,6 +83,7 @@ import HonClient from '../clients/HonClient.ts'
 import TaggedImageStorage from '../models/TaggedImageStorage.ts'
 import FeatureToggle from '../models/FeatureToggles'
 import ImageTags from '../models/ImageTags.ts'
+import ActionProcessor from '../models/ActionProcessor.ts'
 
 const location = window.location
 const serverPort = 8901
@@ -135,6 +136,9 @@ export default {
     this.features = FeatureToggle.getAllToggles()
   },
   computed: {
+    actionProcessor() {
+      return new ActionProcessor()
+    },
     imageTags() {
       return ImageTags.getTags()
     },
@@ -191,12 +195,14 @@ export default {
     },
     availableActions() {
       const { filteredImages, imageTags, tags } = this
-      return Object.keys(imageTags).map(actionType => {
-        const icon = imageTags[actionType]
+      return Object.keys(imageTags).map(tagName => {
+        const icon = imageTags[tagName]
+        const action = ImageTags.getActionByName(tagName)
         return {
-          id: actionType,
+          id: tagName,
+          action,
           icon,
-          files: Object.entries(tags).filter(([image, tag]) => tag === icon && filteredImages.includes(image))
+          files: Object.entries(tags).filter(([image, tag]) => tag === icon && filteredImages.includes(image)).map(([image, tag]) => image)
         }
       }).filter(action => action.files?.length > 0)
     },
@@ -236,12 +242,15 @@ export default {
       return (value === currentValue) ? 'selected' : ''
     },
     markImageForRemoval(image) {
+      const { imageTags } = this
       this.markImageTag(image, imageTags.remove)
     },
     markImageAsUnsure(image) {
+      const { imageTags } = this
       this.markImageTag(image, imageTags.unsure)
     },
     markImageToKeep(image) {
+      const { imageTags } = this
       this.markImageTag(image, imageTags.keep)
     },
     markImageTag(image, tag) {
@@ -257,6 +266,7 @@ export default {
       this.tags = TaggedImageStorage.getAll()
     },
     tagFor(image) {
+      const { imageTags } = this
       return this.tags[image] ?? imageTags.none
     },
     captionFor(image) {

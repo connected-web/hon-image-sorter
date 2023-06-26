@@ -10,15 +10,7 @@ interface ServerStatusResponse {
   [key: string]: any
 }
 
-interface FileList {
-  // Define the structure of the filelist object
-  // Modify the types based on the actual structure of the filelist
-  // Example: { files: string[] }
-  // Replace `any` with the appropriate type
-  // Add more properties as needed
-  // Example: files: string[];
-  [key: string]: any
-}
+type FileList = Array<string>
 
 export default class HonClient {
   private readonly serverUrl: string
@@ -50,8 +42,10 @@ export default class HonClient {
     return response.data
   }
 
-  async removeFiles (filelist: FileList): Promise<any> {
-    const response: AxiosResponse<any> = await this.client.post('/server/remove', { filelist })
+  async removeFiles (filelist: FileList = []): Promise<any> {
+    const { serverUrl } = this
+    const normalized = filelist.map(file => file.replace(serverUrl, ''))
+    const response: AxiosResponse<any> = await this.client.post('/server/remove', { filelist: normalized })
     return response.data
   }
 }
