@@ -1,12 +1,12 @@
 
 <template>
-  <div :class="[currentMode.class, 'app-boundary'].join(' ')">
+  <div class="app-boundary">
     <div v-if="FeatureToggle.isEnabled('filterImagesByText') || FeatureToggle.isEnabled('filterImagesByTag')" class="control-block">
-      <label>Filter</label>
+      <label class="filter">Filter</label>
       <div v-if="FeatureToggle.isEnabled('filterImagesByText')" class="search-filter">
         <input v-model="textFilter" placeholder="🔍 Type to filter..." />
       </div>
-      <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row">
+      <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row nowrap">
         <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
           :class="selectedClass(tag, currentTagFilter)">{{ tag || '🧽' }} {{ tag ? filterableImages(tag, tags) : '' }}</button>
       </div>
@@ -89,18 +89,6 @@ const location = window.location
 const serverPort = 8901
 const serverUrl = location.protocol + '//' + location.hostname + ':' + serverPort
 
-
-const viewModes = [{
-  name: '256px',
-  class: 'mode-256'
-}, {
-  name: '512px',
-  class: 'mode-512'
-}, {
-  name: '768px',
-  class: 'mode-768'
-}]
-
 export default {
   props: {
     folderPath: {
@@ -119,9 +107,7 @@ export default {
       folders: [],
       serverUrl,
       honClient: new HonClient(serverUrl),
-      currentMode: viewModes[0],
       currentPage: this.$route.query.page ? Number.parseInt(this.$route.query.page) : 1,
-      modes: viewModes,
       pageSize: 40,
       tags: {},
       currentTagFilter: '',
@@ -228,9 +214,6 @@ export default {
         return a.localeCompare(b, 'en', { numeric: true })
       })
       this.folders = (fileDetails?.folders ?? [])
-    },
-    changeMode(newMode) {
-      this.currentMode = newMode
     },
     changePage(newPage) {
       const { pages } = this
@@ -346,7 +329,7 @@ export default {
   place-content: center;
   background: #333;
   font-size: 0;
-  width: 33%;
+  width: 25%;
   overflow: hidden;
 }
 
@@ -386,6 +369,18 @@ export default {
   .image-container {
     width: 100%;
   }
+  label.filter {
+    display: none;
+  }
+  .search-filter {
+    display: flex;
+  }
+  .search-filter input {
+    flex: 1 1;
+    margin: 0.5em 0;
+    padding: 12px;
+  }
+
 }
 
 .image-tag {

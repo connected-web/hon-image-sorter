@@ -10,7 +10,7 @@ interface ServerStatusResponse {
   [key: string]: any
 }
 
-type FileList = Array<string>
+type FileList = string[]
 
 export default class HonClient {
   private readonly serverUrl: string

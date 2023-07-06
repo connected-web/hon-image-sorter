@@ -65,7 +65,6 @@ app.post('/server/remove', async (req, res) => {
   })
 })
 
-
 console.log('Source path for /images:', { sourcePath })
 app.use('/images', express.static(sourcePath))
 
