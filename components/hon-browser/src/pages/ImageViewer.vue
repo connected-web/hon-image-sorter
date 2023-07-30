@@ -42,7 +42,10 @@
       </div>
     </div>
 
-    <pre v-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ { currentPage, filteredImages } }},</code></pre>
+    <div v-if="loadingImages" class="control-block center">
+      <LoadingSpinner>Loading images for <code>{{ folderPath }}</code>...</LoadingSpinner>
+    </div>
+    <pre v-else-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ { currentPage, filteredImages } }},</code></pre>
 
     <div v-if="FeatureToggle.isEnabled('pagination')" class="bottom-bar">
       <div class="control-block center">
@@ -64,13 +67,16 @@
     <div v-if="availableActions.length > 0" class="floating-bar">
       <div class="control-block">
         <label>Tagged images</label>
-        <div v-if="displayConfirmation" class="confirm-action">
+        <div v-if="processingAction">
+          <LoadingSpinner>Processing action...</LoadingSpinner>
+        </div>
+        <div v-else-if="displayConfirmation" class="confirm-action">
           <label>Are you sure you want to <kbd>{{ displayConfirmation.icon }} {{ displayConfirmation.action?.type }}</kbd> {{ displayConfirmation.files.length }} files?</label>
-          <button @click="actionProcessor.processFiles(displayConfirmation.files, displayConfirmation?.action)">Yes</button>
-          <button @click="displayConfirmation = null; currentTagFilter = ''">Cancel</button>
+          <button @click="activateAction(displayConfirmation)">Yes</button>
+          <button @click="cancelAtConfirmation">Cancel</button>
         </div>
         <div v-else class="button row actions">
-          <button v-for="action in availableActions" :key="`action_${action.id}`" @click="activate(action)">{{
+          <button v-for="action in availableActions" :key="`action_${action.id}`" @click="confirmAction(action)">{{
             action.icon }} ({{ action?.files?.length }})</button>
         </div>
       </div>
@@ -85,11 +91,14 @@ import FeatureToggle from '../models/FeatureToggles'
 import ImageTags from '../models/ImageTags.ts'
 import ActionProcessor from '../models/ActionProcessor.ts'
 
+import LoadingSpinner from '../components/LoadingSpinner.vue'
+
 const location = window.location
 const serverPort = 8901
 const serverUrl = location.protocol + '//' + location.hostname + ':' + serverPort
 
 export default {
+  components: { LoadingSpinner },
   props: {
     folderPath: {
       type: String,
@@ -102,6 +111,7 @@ export default {
   },
   data() {
     return {
+      loadingImages: false,
       localFilePath: '',
       images: [],
       folders: [],
@@ -113,7 +123,8 @@ export default {
       currentTagFilter: '',
       textFilter: this.$route.query.textFilter ?? '',
       FeatureToggle,
-      displayConfirmation: null
+      displayConfirmation: null,
+      processingAction: false
     }
   },
   async mounted() {
@@ -202,18 +213,34 @@ export default {
     }
   },
   methods: {
-    activate(action) {
+    async confirmAction(action) {
       console.log('Activating', action)
       this.filterBasedOnTag(action.icon)
       this.displayConfirmation = action
     },
+    cancelAtConfirmation() {
+      this.displayConfirmation = null
+      this.currentTagFilter = ''
+    },
+    async activateAction(action) {
+      const { displayConfirmation } = this
+      this.processingAction = true
+      const actionResult = await this.actionProcessor.processFiles(displayConfirmation.files, displayConfirmation?.action)
+      this.images = (actionResult?.images ?? []).map(imagePath => `${serverUrl}${imagePath}`).sort((a, b) => {
+        return a.localeCompare(b, 'en', { numeric: true })
+      })
+      this.processingAction = false
+      this.cancelAtConfirmation()
+    },
     async reloadImageData() {
+      this.loadingImages = true
       const fileDetails = await this.honClient.listFiles()
       this.localFilePath = fileDetails?.sourcePath
       this.images = (fileDetails?.images ?? []).map(imagePath => `${serverUrl}${imagePath}`).sort((a, b) => {
         return a.localeCompare(b, 'en', { numeric: true })
       })
       this.folders = (fileDetails?.folders ?? [])
+      this.loadingImages = false
     },
     changePage(newPage) {
       const { pages } = this

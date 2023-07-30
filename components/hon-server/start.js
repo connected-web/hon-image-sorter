@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 
-import { find, position } from 'promise-path'
+import { find, position, clean } from 'promise-path'
 
 const app = express()
 app.use(cors())
@@ -55,11 +55,24 @@ app.post('/server/remove', async (req, res) => {
   const filesToKeep = images.filter(file => !filelist.includes(file))
   const filesNotFound = filelist.filter(file => !images.includes(file))
 
+  let error
+  try {
+    const cleanUpWork = filesToDelete.map(file => {
+      const targetFile = sourcePos(file).replace('/images/', '/')
+      console.log('Removing:', { targetFile })
+      return clean(targetFile)
+    })
+    await Promise.all(cleanUpWork)
+  } catch (ex) {
+    error = `Unable to delete files: ${ex.message}`
+    return res.json({ error, filesToDelete, filesNotFound, folders })
+  }
+
   res.json({
     sourcePath,
-    filelist,
     folders: folders.map(folderpath => folderpath.replace(basePath, '/images/')),
-    filesToDelete,
+    filesToDelete: filelist,
+    deletedFiles: filesToDelete,
     filesNotFound,
     images: filesToKeep
   })
