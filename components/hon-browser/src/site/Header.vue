@@ -11,7 +11,7 @@
   </div>
 </template>
   
-<script>  
+<script>
 import { inject } from 'vue'
 
 export default {

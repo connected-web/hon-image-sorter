@@ -12,6 +12,11 @@
       </div>
     </div>
 
+    <div class="control-block">
+      <label>Current Folder:</label>
+      <label>{{ folderPath }} ({{ imagesInFolder.length }}) ({{ 240 - imagesInFolder.length }} missing)</label>
+    </div>
+
     <div v-if="FeatureToggle.isEnabled('pagination')" class="control-block center">
       <div class="button row pages">
         <button :disabled="!previousPageAvailable" @click="changePage(currentPage - 1)">⬅️</button>
@@ -144,6 +149,10 @@ export default {
       const maxPage = Math.ceil(filteredImages.length / pageSize)
       return Math.min(maxPage, currentPage)
     },
+    imagesInFolder() {
+      const { images, folderPath, currentTagFilter } = this
+      return images.filter(imagepath => imagepath.includes(folderPath) && !imagepath.replace(`${serverUrl}/${folderPath}`, '').includes('/'))
+    },
     filteredImages() {
       const { images, folderPath, currentTagFilter, textFilter, tags } = this
 
@@ -226,6 +235,7 @@ export default {
       const { displayConfirmation } = this
       this.processingAction = true
       const actionResult = await this.actionProcessor.processFiles(displayConfirmation.files, displayConfirmation?.action)
+      this.tags = TaggedImageStorage.getAll()
       this.images = (actionResult?.images ?? []).map(imagePath => `${serverUrl}${imagePath}`).sort((a, b) => {
         return a.localeCompare(b, 'en', { numeric: true })
       })

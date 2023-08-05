@@ -1,5 +1,6 @@
 import HonClient from '../clients/HonClient'
 import { ActionType } from './ImageTags'
+import TaggedImageStorage from './TaggedImageStorage'
 
 export default class ActionProcessor {
   private readonly client: HonClient
@@ -32,6 +33,9 @@ export default class ActionProcessor {
     try {
       const response = await this.client.removeFiles(files)
       console.log('Removed files:', { response })
+      files.forEach(imageFile => {
+        TaggedImageStorage.removeTaggedImage(imageFile)
+      })
       return response
     } catch (error) {
       console.error('Unable to remove files:', { files, error })
