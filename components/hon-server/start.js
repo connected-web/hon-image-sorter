@@ -39,6 +39,49 @@ app.get('/server/list', async (req, res) => {
   })
 })
 
+app.get('/server/folder/contents', async (req, res) => {
+  console.log('GET /server/folder/contents')
+  const folderPath = (req.query.folderPath ?? '').replace('images/', '')
+  const folderSearch = sourcePos(`${folderPath}/**/`)
+  const imageSearch = sourcePos(`${folderPath}/**/*.png`)
+  console.log('List files in folder', { imageSearch })
+
+  const files = await find(imageSearch)
+  const folders = await find(folderSearch)
+  const images = files.map(filepath => filepath.replace(basePath, '/images/'))
+
+  res.json({
+    sourcePath,
+    folderPath,
+    folders: folders.map(folderpath => folderpath.replace(basePath, '/images/')),
+    images
+  })
+})
+
+app.get('/server/folder/list', async (req, res) => {
+  console.log('GET /server/folder/list')
+  const folderPath = (req.query.folderPath ?? '').replace('images/', '')
+  const folderSearch = sourcePos(`${folderPath}/**/`)
+  const imageSearch = sourcePos(`${folderPath}/**/*.png`)
+  console.log('List folders on server', { imageSearch })
+
+  const files = await find(imageSearch)
+  const folders = await find(folderSearch)
+  const images = files.map(filepath => filepath.replace(basePath, '/images/'))
+
+  res.json({
+    sourcePath,
+    folderPath,
+    folders: folders.map(folderpath => {
+      const updatedPath = folderpath.replace(basePath, '/images/')
+      return {
+        path: updatedPath,
+        fileCount: images.filter(imagepath => imagepath.includes(updatedPath) && !imagepath.replace(updatedPath, '').includes('/')).length
+      }
+    })
+  })
+})
+
 app.post('/server/remove', async (req, res) => {
   const payload = req.body
   const filelist = payload?.filelist ?? []

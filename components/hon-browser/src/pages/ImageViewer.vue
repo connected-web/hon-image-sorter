@@ -14,7 +14,7 @@
 
     <div class="control-block">
       <label>Current Folder:</label>
-      <label>{{ folderPath }} ({{ imagesInFolder.length }}) ({{ 240 - imagesInFolder.length }} missing)</label>
+      <label>{{ folderPath }} ({{ imagesInFolder.length }}) ({{ (pageSize - imagesInFolder.length % pageSize) }} missing)</label>
     </div>
 
     <div v-if="FeatureToggle.isEnabled('pagination')" class="control-block center">
@@ -50,7 +50,7 @@
     <div v-if="loadingImages" class="control-block center">
       <LoadingSpinner>Loading images for <code>{{ folderPath }}</code>...</LoadingSpinner>
     </div>
-    <pre v-else-if="imagesInView.length === 0"><code>No images found mathcing filters in {{ folderPath }}, {{ { currentPage, filteredImages } }},</code></pre>
+    <p class="warning" style="text-align: center;" v-else-if="imagesInView.length === 0">⚠️ No images found matching filters in {{ folderPath }}</p>
 
     <div v-if="FeatureToggle.isEnabled('pagination')" class="bottom-bar">
       <div class="control-block center">
@@ -171,7 +171,7 @@ export default {
 
       if (textFilter) {
         filteredImages = filteredImages.filter(imagepath => {
-          return imagepath.includes(textFilter)
+          return imagepath?.toLowerCase()?.includes(textFilter?.toLowerCase())
         })
       }
 
@@ -244,7 +244,7 @@ export default {
     },
     async reloadImageData() {
       this.loadingImages = true
-      const fileDetails = await this.honClient.listFiles()
+      const fileDetails = await this.honClient.listFilesInFolder(this.folderPath)
       this.localFilePath = fileDetails?.sourcePath
       this.images = (fileDetails?.images ?? []).map(imagePath => `${serverUrl}${imagePath}`).sort((a, b) => {
         return a.localeCompare(b, 'en', { numeric: true })

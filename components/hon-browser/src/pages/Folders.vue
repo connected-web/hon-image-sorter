@@ -52,7 +52,7 @@ export default {
     buildFolderTree(folders) {
       const folderTree = {}
       folders.forEach(folder => {
-        const pathParts = folder.split('/').filter(part => part !== '')
+        const pathParts = folder.path.split('/').filter(part => part !== '')
         let currentFolder = folderTree
         pathParts.forEach(part => {
           if (!currentFolder.folders) {
@@ -61,7 +61,7 @@ export default {
           let subfolder = currentFolder.folders.find(f => f.path === part)
           if (!subfolder) {
             const fullPath = currentFolder.fullPath ? `${currentFolder.fullPath}/${part}` : `/${part}`
-            subfolder = { path: part, fullPath, folders: [], files: this.filesInFolder(fullPath) }
+            subfolder = { path: part, fullPath, folders: [], fileCount: folder.fileCount }
             currentFolder.folders.push(subfolder)
           }
           currentFolder = subfolder

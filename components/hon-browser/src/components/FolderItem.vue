@@ -2,7 +2,7 @@
   <div class="folder-tree">
     <router-link :to="`${folder.fullPath}/`" class="folder-item">
       <label>/{{ folder.path }}/</label>
-      <label>({{ folder?.files?.length ?? 0 }})</label>
+      <label>({{ folder?.fileCount ?? 0 }})</label>
     </router-link>
     <div class="folder-children">
       <folder-item v-for="subFolder in folder?.folders ?? []" :key="subFolder.fullPath" :folder="subFolder" :level="level + 1" />
