@@ -3,8 +3,8 @@
   <div class="app-boundary">
     <div v-if="FeatureToggle.isEnabled('filterImagesByText') || FeatureToggle.isEnabled('filterImagesByTag')" class="control-block">
       <label class="filter">Filter</label>
-      <div v-if="FeatureToggle.isEnabled('filterImagesByText')" class="search-filter">
-        <input v-model="textFilter" placeholder="🔍 Type to filter..." />
+      <div v-if="FeatureToggle.isEnabled('filterImagesByText')" class="search-filter button row">
+        <input v-model="textFilter" placeholder="🔍 Type to filter..." /><button v-if="textFilter" @click="textFilter = ''">🧽 Clear</button>
       </div>
       <div v-if="FeatureToggle.isEnabled('tagImages') && FeatureToggle.isEnabled('filterImagesByTag')" class="button row nowrap">
         <button v-for="tag in imageTags" :key="tag" @click="filterBasedOnTag(tag)"
