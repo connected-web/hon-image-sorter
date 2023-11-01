@@ -22,23 +22,6 @@ app.get('/', (req, res) => {
   })
 })
 
-app.get('/server/list', async (req, res) => {
-  console.log('GET /server/list')
-  const folderSearch = sourcePos('**/')
-  const imageSearch = sourcePos('**/*.png')
-  console.log('List files on server', { imageSearch })
-
-  const files = await find(imageSearch)
-  const folders = await find(folderSearch)
-  const images = files.map(filepath => filepath.replace(basePath, '/images/'))
-
-  res.json({
-    sourcePath,
-    folders: folders.map(folderpath => folderpath.replace(basePath, '/images/')),
-    images
-  })
-})
-
 app.get('/server/folder/contents', async (req, res) => {
   console.log('GET /server/folder/contents')
   const folderPath = (req.query.folderPath ?? '').replace('images/', '')
@@ -58,27 +41,31 @@ app.get('/server/folder/contents', async (req, res) => {
   })
 })
 
+const fileCountCache = {}
 app.get('/server/folder/list', async (req, res) => {
   console.log('GET /server/folder/list')
-  const folderPath = (req.query.folderPath ?? '').replace('images/', '')
-  const folderSearch = sourcePos(`${folderPath}/**/`)
-  const imageSearch = sourcePos(`${folderPath}/**/*.png`)
-  console.log('List folders on server', { imageSearch })
+  const rootFolder = (req.query.folderPath ?? '').replace('images/', '')
+  const folderSearch = sourcePos(`${rootFolder}/**/`)
 
-  const files = await find(imageSearch)
   const folders = await find(folderSearch)
-  const images = files.map(filepath => filepath.replace(basePath, '/images/'))
 
   res.json({
     sourcePath,
-    folderPath,
-    folders: folders.map(folderpath => {
+    folderPath: rootFolder,
+    folders: await Promise.all(folders.map(async (folderpath) => {
       const updatedPath = folderpath.replace(basePath, '/images/')
+      const imageSearch = `${folderpath}**/*.png`
+      if (fileCountCache[updatedPath] === undefined) {
+        const files = await find(imageSearch)
+        console.log('List folders on server', { imageSearch, count: files.length })
+        fileCountCache[updatedPath] = files.filter(imagepath => imagepath.includes(folderpath) && !imagepath.replace(folderpath, '').includes('/')).length
+      }
+
       return {
         path: updatedPath,
-        fileCount: images.filter(imagepath => imagepath.includes(updatedPath) && !imagepath.replace(updatedPath, '').includes('/')).length
+        fileCount: fileCountCache[updatedPath] ?? 0
       }
-    })
+    }))
   })
 })
 

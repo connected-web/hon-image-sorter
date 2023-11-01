@@ -32,11 +32,6 @@ export default class HonClient {
     return response.data
   }
 
-  async listAllFiles (): Promise<FileList> {
-    const response: AxiosResponse<FileList> = await this.client.get('/server/list')
-    return response.data
-  }
-
   async listFiles (folderPath: string): Promise<FileList> {
     const response: AxiosResponse<FileList> = await this.client.get('/server/folder/list', { params: { folderPath } })
     return response.data
