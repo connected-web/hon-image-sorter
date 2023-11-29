@@ -29,6 +29,12 @@ export default {
     icon: '🔢',
     description: 'Enables pagination of image results'
   },
+  sortFoldersView: {
+    enabled: true,
+    name: 'Sort Folders View',
+    icon: '⬆️',
+    description: 'Sort folders with newest at the top.'
+  },
   thumbnailScaling: {
     enabled: true,
     name: 'Thumbnail Scaling',

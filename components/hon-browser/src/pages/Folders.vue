@@ -18,6 +18,7 @@
 <script>
 import HonClient from '../clients/HonClient.ts'
 import FolderItem from '../components/FolderItem.vue'
+import FeatureToggle from '../models/FeatureToggles.ts'
 
 const honClient = new HonClient()
 
@@ -33,7 +34,6 @@ export default {
   data() {
     return {
       localFilePath: '',
-      images: [],
       folders: [],
       serverUrl: honClient.serverUrl,
       honClient
@@ -73,15 +73,14 @@ export default {
       const { serverUrl } = this
       const fileDetails = await this.honClient.listFiles()
       this.localFilePath = fileDetails?.sourcePath
-      this.images = (fileDetails?.images ?? []).map(imagePath => `${serverUrl}${imagePath}`).sort((a, b) => {
-        return a.localeCompare(b, 'en', { numeric: true })
-      })
       const folders = (fileDetails?.folders ?? [])
-      this.folders = folders
-    },
-    filesInFolder(folder) {
-      const { images, serverUrl } = this
-      return images.filter(imagepath => imagepath.includes(folder) && !imagepath.replace(`${serverUrl}${folder}/`, '').includes('/'))
+      this.folders = folders.sort((a, b) => {
+        if (FeatureToggle.isEnabled('sortFoldersView')) {
+          return b.path.localeCompare(a.path, 'en', { numeric: true })
+        } else {
+          return a.path.localeCompare(b.path, 'en', { numeric: true })
+        }
+      })
     }
   }
 }

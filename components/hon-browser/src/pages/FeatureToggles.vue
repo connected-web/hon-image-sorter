@@ -20,22 +20,22 @@
           <b class="toggle-name">{{ toggle.name }}</b>
         </div>
         <p class="toggle-description">{{ toggle.description }}</p>
-        <ToggleButton @click.native="toggleFeature(toggleName)" :value="toggle" />
+        <ToggleButton @click.native="toggleFeature(String(toggleName))" :value="toggle" />
       </div>
     </div>
 
   </div>
 </template>
   
-<script>
-import FeatureToggle from '../models/FeatureToggles.ts'
+<script lang="ts">
+import FeatureToggle, { FeatureToggles } from '../models/FeatureToggles'
 import ToggleButton from '../components/ToggleButton.vue'
 
 export default {
   components: { ToggleButton },
   data() {
     return {
-      toggles: {},
+      toggles: {} as FeatureToggles,
       settings: {}
     }
   },
@@ -51,7 +51,7 @@ export default {
     initializeToggles() {
       this.toggles = FeatureToggle.getAllToggles()
     },
-    toggleFeature(featureName) {
+    toggleFeature(featureName: string) {
       // Toggle the feature using FeatureToggle class
       if (this.toggles.hasOwnProperty(featureName)) {
         if (this.toggles[featureName].enabled) {

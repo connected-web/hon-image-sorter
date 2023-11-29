@@ -1,13 +1,13 @@
 import isString from '@/lang/isString'
 
-interface FeatureToggleConfig {
+export interface FeatureToggleConfig {
   enabled: boolean
   name: string
   icon: string
   description: string
 }
 
-interface FeatureToggles {
+export interface FeatureToggles {
   [key: string]: FeatureToggleConfig
 }
 
