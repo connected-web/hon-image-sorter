@@ -33,6 +33,9 @@ app.get('/server/folder/contents', async (req, res) => {
   const folders = await find(folderSearch)
   const images = files.map(filepath => filepath.replace(basePath, '/images/'))
 
+  const updatedPath = folderPath.replace(basePath, '/images/')
+  fileCountCache[updatedPath] = files.filter(imagepath => imagepath.includes(folderPath) && !imagepath.replace(folderPath, '').includes('/')).length
+
   res.json({
     sourcePath,
     folderPath,
