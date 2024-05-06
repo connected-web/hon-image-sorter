@@ -24,21 +24,22 @@ app.get('/', (req, res) => {
 
 app.get('/server/folder/contents', async (req, res) => {
   console.log('GET /server/folder/contents')
-  const folderPath = (req.query.folderPath ?? '').replace('images/', '')
-  const folderSearch = sourcePos(`${folderPath}/**/`)
-  const imageSearch = sourcePos(`${folderPath}/**/*.png`)
+  const localFolderPath = (req.query.folderPath ?? '').replace('images/', '')
+  const folderSearch = sourcePos(`${localFolderPath}/**/`)
+  const imageSearch = sourcePos(`${localFolderPath}/**/*.png`)
   console.log('List files in folder', { imageSearch })
 
   const files = await find(imageSearch)
   const folders = await find(folderSearch)
   const images = files.map(filepath => filepath.replace(basePath, '/images/'))
 
-  const updatedPath = folderPath.replace(basePath, '/images/')
-  fileCountCache[updatedPath] = files.filter(imagepath => imagepath.includes(folderPath) && !imagepath.replace(folderPath, '').includes('/')).length
+  const cachePath = `/images/${localFolderPath}`
+  fileCountCache[cachePath] = images.length
+  console.log('Updated path counts:', cachePath, fileCountCache[cachePath])
 
   res.json({
     sourcePath,
-    folderPath,
+    folderPath: localFolderPath,
     folders: folders.map(folderpath => folderpath.replace(basePath, '/images/')),
     images
   })
@@ -47,26 +48,27 @@ app.get('/server/folder/contents', async (req, res) => {
 const fileCountCache = {}
 app.get('/server/folder/list', async (req, res) => {
   console.log('GET /server/folder/list')
-  const rootFolder = (req.query.folderPath ?? '').replace('images/', '')
-  const folderSearch = sourcePos(`${rootFolder}/**/`)
+  const localRootFolder = (req.query.folderPath ?? '').replace('images/', '')
+  const folderSearch = sourcePos(`${localRootFolder}/**/`)
 
   const folders = await find(folderSearch)
 
   res.json({
     sourcePath,
-    folderPath: rootFolder,
+    folderPath: localRootFolder,
     folders: await Promise.all(folders.map(async (folderpath) => {
-      const updatedPath = folderpath.replace(basePath, '/images/')
+      const cachePath = folderpath.replace(basePath, '/images/')
       const imageSearch = `${folderpath}**/*.png`
-      if (fileCountCache[updatedPath] === undefined) {
+      if (fileCountCache[cachePath] === undefined) {
         const files = await find(imageSearch)
         console.log('List folders on server', { imageSearch, count: files.length })
-        fileCountCache[updatedPath] = files.filter(imagepath => imagepath.includes(folderpath) && !imagepath.replace(folderpath, '').includes('/')).length
+        fileCountCache[cachePath] = files.filter(imagepath => imagepath.includes(folderpath) && !imagepath.replace(folderpath, '').includes('/')).length
+        console.log('Updated path counts:', cachePath, fileCountCache[cachePath])
       }
 
       return {
-        path: updatedPath,
-        fileCount: fileCountCache[updatedPath] ?? 0
+        path: cachePath,
+        fileCount: fileCountCache[cachePath] ?? 0
       }
     }))
   })
